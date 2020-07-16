@@ -1,0 +1,15 @@
+  
+ngx_addon_name=ngx_http_jwt_cf_module
+
+if test -n "$ngx_module_link"; then
+	ngx_module_type=HTTP
+	ngx_module_name=ngx_http_jwt_cf_module
+	ngx_module_srcs="$ngx_addon_dir/src/ngx_http_jwt_cf_module.c $ngx_addon_dir/src/ngx_http_jwt_cf_header_processing.c $ngx_addon_dir/src/ngx_http_jwt_cf_jwk_decode.c $ngx_addon_dir/src/ngx_http_jwt_cf_jwk_request.c $ngx_addon_dir/src/ngx_http_jwt_cf_string.c"
+	ngx_module_libs="-ljansson -ljwt -lcurl -lcrypto -lssl"
+
+	. auto/module
+else
+	HTTP_MODULES="$HTTP_MODULES ngx_http_jwt_cf_module"
+	NGX_ADDON_SRCS="$ngx_addon_dir/src/ngx_http_jwt_cf_module.c $ngx_addon_dir/src/ngx_http_jwt_cf_header_processing.c $ngx_addon_dir/src/ngx_http_jwt_cf_jwk_decode.c $ngx_addon_dir/src/ngx_http_jwt_cf_jwk_request.c $ngx_addon_dir/src/ngx_http_jwt_cf_string.c"
+	ngx_module_libs="-ljansson -ljwt -lcurl -lcrypto -lssl"
+fi
