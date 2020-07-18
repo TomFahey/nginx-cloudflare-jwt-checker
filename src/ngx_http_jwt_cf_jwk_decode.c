@@ -22,8 +22,9 @@ u_char *base64_urlsafe_to_standard(ngx_pool_t *pool, char* base64url) {
     return b64buffer;
 }
 
-u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int* len) {
-   BIO *b64, *bmem;
+u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int** len) {
+   BIO *b64 = NULL;
+   BIO *bmem = NULL;
    size_t length = ngx_strlen((char *)base64data);
    size_t paddedLength;
    u_char *paddedb64data;
@@ -31,58 +32,60 @@ u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int* len) {
    {
        int lcm = (length / 8 + 1) * 8;
        int n_pad = lcm - length;
-       paddedLength =  length + n_pad;
-       paddedb64data = (u_char *) ngx_pcalloc(pool, paddedLength+1);
-       ngx_cpystrn(paddedb64data, base64data, length+1);
+       paddedLength =  length + n_pad + 1;
+       paddedb64data = (u_char *) ngx_pcalloc(pool, paddedLength);
+       ngx_cpystrn(paddedb64data, base64data, length);
        ngx_memset(paddedb64data+length, 61, n_pad);
+       ngx_memset(paddedb64data+length+n_pad, 0, 1);
    }
    else
    {
-       paddedb64data = (u_char *) ngx_pcalloc(pool, length+1);
-       ngx_cpystrn(paddedb64data, base64data, length+1);
-       paddedLength = length;
+       paddedLength = length + 1;
+       paddedb64data = (u_char *) ngx_pcalloc(pool, paddedLength);
+       ngx_cpystrn(paddedb64data, base64data, length);
+       ngx_memset(paddedb64data+length, 0, 1);
    }
-   u_char *retbuffer = (u_char *)ngx_pcalloc(pool, paddedLength+1);
+   u_char *retbuffer = (u_char *)ngx_pcalloc(pool, paddedLength);
    b64 = BIO_new(BIO_f_base64());
    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
    bmem = BIO_new_mem_buf((void*)paddedb64data, paddedLength);
    bmem = BIO_push(b64, bmem);
-   *len = BIO_read(bmem, retbuffer, paddedLength);
+   **len = BIO_read(bmem, retbuffer, paddedLength);
    BIO_free_all(bmem);
    return retbuffer;
 }
 
 BIGNUM* bignum_base64_decode(ngx_pool_t *pool, u_char* base64bignum, int* len) {
    BIGNUM* bn = NULL;
-   u_char* data = base64_decode(pool, base64bignum, len);
+   u_char* data = base64_decode(pool, base64bignum, &len);
    if (*len) {
        bn = BN_bin2bn(data, *len, NULL);
    }
    ngx_pfree(pool, data);
-   ngx_pfree(pool, len);
    return bn;
 }
 
 
-u_char *jwk_to_pem_u_char(ngx_pool_t *pool, char* modulus, char* exponent) {
-    int mod_hex_len;
-    u_char* n_url_decode = base64_urlsafe_to_standard(pool, modulus);
-    BIGNUM *n = bignum_base64_decode(pool, n_url_decode, &mod_hex_len);
-    int exp_hex_len;
-    BIGNUM *e = bignum_base64_decode(pool, (u_char *)exponent, &exp_hex_len);
-    RSA *pubkey = RSA_new();
-    RSA_set0_key(pubkey, n, e, NULL);
+u_char *jwk_to_pem_u_char(ngx_pool_t *pool, struct pubkey_t pubkey) {
+    int *mod_hex_len = ngx_palloc(pool, sizeof(int));
+    u_char* n_url_decode = base64_urlsafe_to_standard(pool, pubkey.modulus);
+    BIGNUM *n = bignum_base64_decode(pool, n_url_decode, mod_hex_len);
+    int *exp_hex_len = ngx_palloc(pool, sizeof(int));
+    BIGNUM *e = bignum_base64_decode(pool, (u_char *)pubkey.exponent, exp_hex_len);
+    RSA *RSAkey = RSA_new();
+    RSA_set0_key(RSAkey, n, e, NULL);
+    BIO* buf1 = BIO_new(BIO_s_mem());
     BIO* buf2 = BIO_new(BIO_s_mem());
-    BIO* buf3 = BIO_new(BIO_s_mem());
-    PEM_write_bio_RSA_PUBKEY(buf2, pubkey);
-    RSA_print(buf3, pubkey, 1);
-    u_char *rsaOut;
-    BIO_get_mem_data(buf3, &rsaOut);
-    ngx_pfree(pool, rsaOut);
+    PEM_write_bio_RSA_PUBKEY(buf2, RSAkey);
     u_char *p;
-    int readSize = (int)BIO_get_mem_data(buf2, &p);
+    int readSize = (int)BIO_get_mem_data(buf1, &p);
     u_char * dest = ngx_pcalloc(pool, readSize);
     ngx_memcpy(dest, p, readSize);
     ngx_pfree(pool, p);
+    ngx_pfree(pool, n_url_decode);
+    ngx_pfree(pool, mod_hex_len);
+    ngx_pfree(pool, exp_hex_len);
+    BIO_free_all(buf1);
+    BIO_free_all(buf2);
     return dest;
 }

@@ -14,16 +14,17 @@ struct write_result {
     size_t size;
 };
 
-typedef struct pubkey_t {
+struct pubkey_t {
     char *exponent;
     char *modulus;
-} pubkey_t
+    u_char *certPEM;
+};
 
 
 size_t write_response(void *contents, size_t size, size_t nmemb, void *stream);
 char *request(ngx_pool_t *pool, const char *url);
 json_t *get_jwk(ngx_pool_t *pool, const char *URL);
-int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, char **modulus, char **exponent);
+int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, struct pubkey_t **keylist);
 
 
 #endif /* _NGX_HTTP_JWK_CF_JSON_REQUEST_H */

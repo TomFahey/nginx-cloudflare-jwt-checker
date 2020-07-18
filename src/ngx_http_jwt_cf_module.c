@@ -37,7 +37,7 @@ static ngx_int_t ngx_http_jwt_cf_handler(ngx_http_request_t *r);
 static void * ngx_http_jwt_cf_create_loc_conf(ngx_conf_t *cf);
 static char * ngx_http_jwt_cf_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 static char * getJwt(ngx_http_request_t *r, ngx_str_t jwt_cf_validation_type);
-static u_char * getPublicKey(ngx_http_request_t *r, ngx_str_t jwt_cf_cert_url);
+static struct pubkey_t * getPublicKey(ngx_http_request_t *r, ngx_str_t jwt_cf_cert_url, int *numkeys);
 
 static ngx_command_t ngx_http_jwt_cf_commands[] = {
 
@@ -131,7 +131,8 @@ static ngx_int_t ngx_http_jwt_cf_handler(ngx_http_request_t *r)
 	char* return_url;
 	ngx_http_jwt_cf_loc_conf_t *jwtcf;
 	jwt_t *jwt = NULL;
-	u_char *pubkey;
+	struct pubkey_t *pubkey;
+	int *numkeys;
 	int jwtParseReturnCode;
 	jwt_alg_t alg;
 	const char* claim_value;
@@ -162,11 +163,18 @@ static ngx_int_t ngx_http_jwt_cf_handler(ngx_http_request_t *r)
 	}
 
 	// Obtain public key via request to Cloudflare
-	pubkey =  getPublicKey(r, jwtcf->jwt_cf_cert_url);
-	keylen = strlen((char*)pubkey);
+	numkeys = ngx_palloc(r->pool, sizeof(int));
+	pubkey =  getPublicKey(r, jwtcf->jwt_cf_cert_url, numkeys);
+	int validateN = 0;
 	
 	// validate the jwt
-	jwtParseReturnCode = jwt_decode(&jwt, jwtCookieValChrPtr, pubkey, keylen);
+	do {
+		keylen = strlen((char*)pubkey[validateN].certPEM);
+		jwtParseReturnCode = jwt_decode(&jwt, jwtCookieValChrPtr, pubkey[validateN].certPEM, keylen);
+		validateN++;
+	} while (jwtParseReturnCode !=0 && validateN<*numkeys);
+	
+
 	if (jwtParseReturnCode != 0)
 	{
 		ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "failed to parse jwt");
@@ -422,22 +430,21 @@ static char * getJwt(ngx_http_request_t *r, ngx_str_t jwt_cf_validation_type)
 	return jwtCookieValChrPtr;
 }
 
-static u_char * getPublicKey(ngx_http_request_t *r, ngx_str_t jwt_cf_cert_url)
+static struct pubkey_t *getPublicKey(ngx_http_request_t *r, ngx_str_t jwt_cf_cert_url, int *numkeys)
 {
 	json_t *jwkey;
-	char *modulus, *exponent;
-	u_char *pubkey;
+	struct pubkey_t *keylist;
 
 	jwkey = get_jwk(r->pool, (char*)jwt_cf_cert_url.data);
-	int valid_parse = parse_jwk_to_pubkey(r->pool, jwkey, &modulus, &exponent);	
-	if (!valid_parse)
+	*numkeys = parse_jwk_to_pubkey(r->pool, jwkey, &keylist);	
+	if (!*numkeys)
 	{
-		ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0, "Unable to parse java web key");
+		ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0, "Unable to parse java web key(s)");
 	}
-	pubkey = jwk_to_pem_u_char(r->pool, modulus, exponent);
-	ngx_pfree(r->pool, modulus);
-	ngx_pfree(r->pool, exponent);
-	return pubkey;
+	for (int i=0; i<*numkeys; i++){
+    	keylist[i].certPEM = jwk_to_pem_u_char(r->pool, keylist[i]);
+	}
+	return keylist;
 }
 
 

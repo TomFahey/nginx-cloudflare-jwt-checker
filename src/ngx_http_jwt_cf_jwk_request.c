@@ -125,10 +125,9 @@ json_t *get_jwk(ngx_pool_t *pool, const char * URL) {
 
 }
 
-
-int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, char **modulus, char **exponent)
+int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, struct pubkey_t **keylist)
 {
-    json_t *keys, *data, *e, *n;
+    json_t *keys;
 
     keys = json_object_get(root, "keys");
     if (!json_is_array(keys)) {
@@ -137,35 +136,43 @@ int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, char **modulus, char **e
         return 1;
     }
 
-    data = json_array_get(keys, 1);
-    if (!json_is_object(data)) {
-        //fprintf(stderr, "error: data is not an object\n");
-        json_decref(root);
-        return 1;
+    size_t numkeys = json_array_size(keys);
+    *keylist = ngx_palloc(pool, numkeys*(sizeof(*keylist)));
+
+    for (size_t i=0; i<numkeys; i++){
+
+        json_t *data, *e, *n = NULL;
+
+        data = json_array_get(keys, 1);
+        if (!json_is_object(data)) {
+            //fprintf(stderr, "error: data is not an object\n");
+            json_decref(root);
+            return 1;
+        }
+
+        e = json_object_get(data, "e");
+        if (!json_is_string(e)) {
+            //fprintf(stderr, "error: e is not a string\n");
+            json_decref(root);
+            return 1;
+        }
+
+        n = json_object_get(data, "n");
+        if (!json_is_string(n)) {
+            //fprintf(stderr, "error: n is not a string\n");
+            json_decref(root);
+            return 1;
+        }
+
+        int n_len = json_string_length(n);
+        int e_len = json_string_length(e);
+
+        (*keylist)[i].modulus = (char *)ngx_pcalloc(pool, n_len+1);
+        (*keylist)[i].exponent = (char *)ngx_pcalloc(pool, e_len+1);
+        ngx_memcpy((*keylist)[i].modulus, json_string_value(n), n_len);
+        ngx_memcpy((*keylist)[i].exponent, json_string_value(e), e_len);
+
     }
 
-    e = json_object_get(data, "e");
-    if (!json_is_string(e)) {
-        //fprintf(stderr, "error: e is not a string\n");
-        json_decref(root);
-        return 1;
-    }
-
-    n = json_object_get(data, "n");
-    if (!json_is_string(n)) {
-        //fprintf(stderr, "error: n is not a string\n");
-        json_decref(root);
-        return 1;
-    }
-
-    int n_len = json_string_length(n);
-    *modulus = ngx_pcalloc(pool, n_len+1);
-    ngx_memcpy(*modulus, json_string_value(n),n_len);
-    //ngx_memset(*modulus+n_len, (int)'\0', 1);
-    int e_len = json_string_length(e);
-    *exponent = ngx_pcalloc(pool, e_len+1);
-    ngx_memcpy(*exponent, json_string_value(e),e_len);
-    //ngx_memset(*exponent+e_len, (int)'\0', 1);
-
-    return 0;
+    return numkeys;
 }
