@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2020 Tom Fahey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ *
+ * https://github.com/TomFahey/nginx-cloudflare-jwt-checker
+ */
+
 #ifndef _NGX_HTTP_JWT_CF_JWK_DECODE_H
 #define _NGX_HTTP_JWT_CF_JWK_DECODE_H
 

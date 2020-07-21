@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2020 Tom Fahey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ *
+ * https://github.com/TomFahey/nginx-cloudflare-jwt-checker
+ */
+
 #include "ngx_http_jwt_cf_jwk_request.h"
 
 #include <ngx_core.h>
