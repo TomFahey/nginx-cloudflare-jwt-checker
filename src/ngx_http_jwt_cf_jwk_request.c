@@ -137,13 +137,13 @@ int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, struct pubkey_t **keylis
     }
 
     size_t numkeys = json_array_size(keys);
-    *keylist = ngx_palloc(pool, numkeys*(sizeof(*keylist)));
+    *keylist = ngx_palloc(pool, numkeys*(sizeof(**keylist)));
 
     for (size_t i=0; i<numkeys; i++){
 
         json_t *data, *e, *n = NULL;
 
-        data = json_array_get(keys, 1);
+        data = json_array_get(keys, 0);
         if (!json_is_object(data)) {
             //fprintf(stderr, "error: data is not an object\n");
             json_decref(root);
