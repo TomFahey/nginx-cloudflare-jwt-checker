@@ -47,7 +47,7 @@ Also required is [libcurl](https://curl.haxx.se/libcurl/).
 ## NGINX Directives
 The nginx directives differ slightly in this module from TeslaGov. Rather than specifying
 the public cert value, you should provide the URL of the external endpoint for your Cloudflare
-account's authentication domain e.g for an application reachable at `myapp.mydomain.net',
+account's authentication domain e.g for an application reachable at 'myapp.mydomain.net',
 the external endpoint would be `https://mydomain.cloudflareaccess.com/cdn-cgi/access/certs`.
 
 The claim to be checked and it's corresponding value are also specified via the appropriate
