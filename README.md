@@ -59,7 +59,7 @@ following directives would apply:
 server {
     ...
     jwt_cf_cert_url "https://mydomain.cloudflareaccess.com";
-    jwt_cf_login_url "https://my-auth-domain.com/loginpage";
+    jwt_cf_login_url "https://myapp.mydomain.com/loginpage";
     ...
 
     location / {
