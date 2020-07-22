@@ -1,7 +1,7 @@
 # Intro
-This is an NGINX module based on that of [TeslaGov](https://github.com/TeslaGov/ngx-http-auth-jwt-module/master), which I have 
+This is an NGINX module based on that of [TeslaGov](https://github.com/TeslaGov/ngx-http-auth-jwt-module/), which I have 
 extended to work with Cloudflare's [Access Service](https://teams.cloudflare.com/access/), which mandates the verification of
-JWTs ([described here](https://developers.cloudflare.com/access/setting-up-access/validating-jwt-tokens)) in order to properly
+JWTs ([described here](https://developers.cloudflare.com/access/setting-up-access/validate-jwt-tokens)) in order to properly
 authenticate requests made through Access.
 
 Unfortunately, Cloudflare does not use a single, static public certificate for verification, but rather a pair of certificates,
