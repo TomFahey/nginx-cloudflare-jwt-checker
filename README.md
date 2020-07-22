@@ -42,7 +42,7 @@ This module depends on the [JWT C Library](https://github.com/benmcollins/libjwt
 Transitively, that library depends on a JSON Parser called
 [Jansson](https://github.com/akheron/jansson) as well as the OpenSSL library.
 
-Also required is [libcurl](https://curl.hexx.se/libcurl/).
+Also required is [libcurl](https://curl.haxx.se/libcurl/).
 
 ## NGINX Directives
 The nginx directives differ slightly in this module from TeslaGov. Rather than specifying
