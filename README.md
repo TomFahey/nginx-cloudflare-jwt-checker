@@ -65,7 +65,7 @@ server {
     location / {
         ...
         jwt_cf_enabled on;
-        jwt_cf_validation_type COOKIE="CF_Authorization";
+        jwt_cf_validation_type COOKIE=CF_Authorization;
         jwt_cf_redirect off;
         jwt_cf_claim_key "AUD";
         jwt_cf_claim_value "YOUR_APPLICATION_AUDIENCE_TAG";
