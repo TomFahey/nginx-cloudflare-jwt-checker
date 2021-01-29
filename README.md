@@ -24,7 +24,7 @@ git clone https://github.com/TomFahey/nginx-cloudflare-jwt-checker.git
 wget https://nginx.org/download/nginx-1.18.0.tar.gz
 tar -xzf nginx-1.18.0.tar.gz
 cd nginx-1.18.0
-./configure --with-add-dynamic-module=../nginx-cloudflare-jwt-checker
+./configure --add-dynamic-module=../nginx-cloudflare-jwt-checker
 make
 make install
 ```
