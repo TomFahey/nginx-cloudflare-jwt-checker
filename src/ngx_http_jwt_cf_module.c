@@ -167,19 +167,22 @@ static ngx_int_t ngx_http_jwt_cf_handler(ngx_http_request_t *r)
 	// Obtain public key via request to Cloudflare
 	numkeys = ngx_palloc(r->pool, sizeof(int));
 	pubkey =  getPublicKey(r, jwtcf->jwt_cf_cert_url, numkeys);
+	ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0, "Found %d public key certs", *numkeys);
 	int validateN = 0;
 	
 	// validate the jwt
 	do {
 		keylen = strlen((char*)pubkey[validateN].certPEM);
+		ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0, "Trying pubkey #%d:\n%s", validateN, pubkey[validateN].certPEM);
 		jwtParseReturnCode = jwt_decode(&jwt, jwtCookieValChrPtr, pubkey[validateN].certPEM, keylen);
+		ngx_log_error(NGX_LOG_DEBUG, r->connection->log, 0, "Got return code: %d", jwtParseReturnCode);
 		validateN++;
 	} while (jwtParseReturnCode !=0 && validateN<*numkeys);
 	
 
 	if (jwtParseReturnCode != 0)
 	{
-		ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "failed to parse jwt");
+		ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "Could not validate JWT correctly. Try checking error log.");
 		goto redirect;
 	}
 	
