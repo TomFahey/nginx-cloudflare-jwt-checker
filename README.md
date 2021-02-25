@@ -4,9 +4,9 @@ extended to work with Cloudflare's [Access Service](https://teams.cloudflare.com
 JWTs ([described here](https://developers.cloudflare.com/access/setting-up-access/validate-jwt-tokens)) in order to properly
 authenticate requests made through Access.
 
-Unfortunately, Cloudflare does not use a single, static public certificate for verification, but rather a pair of certificates,
-available at an external endpoint, that are periodically rotated, with the intention that validation is performed using this
-endpoint, rather than saving the keys as static values.
+(Un)fortunately, Cloudflare does not use a single, static public certificate for verification, but rather a pair of certificates,
+available at an external endpoint, that are periodically rotated, with the intention that validation is performed dynamically using this
+endpoint, rather than by referencing a long-lived public cert in a configuration file.
 
 This extension therefore builds on the existing module by facilitating the use of the external endpoint as an Nginx directive,
 as well as providing options for which JWT claims to validate, such as the Application Audience (AUD) Tag provided by Cloudflare.
