@@ -152,7 +152,7 @@ int parse_jwk_to_pubkey(ngx_pool_t *pool, json_t *root, struct pubkey_t **keylis
 
         json_t *data, *e, *n = NULL;
 
-        data = json_array_get(keys, 0);
+        data = json_array_get(keys, i);
         if (!json_is_object(data)) {
             //fprintf(stderr, "error: data is not an object\n");
             json_decref(root);
