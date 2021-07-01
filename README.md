@@ -40,7 +40,7 @@ load_module modules/ngx_http_jwt_cf_module.so;
 This module depends on the [JWT C Library](https://github.com/benmcollins/libjwt)
 
 Transitively, that library depends on a JSON Parser called
-[Jansson](https://github.com/akheron/jansson) as well as the OpenSSL library.
+[Jansson](https://github.com/akheron/jansson) as well as the OpenSSL library (versions >= 1.1.0).
 
 Also required is [libcurl](https://curl.haxx.se/libcurl/).
 
