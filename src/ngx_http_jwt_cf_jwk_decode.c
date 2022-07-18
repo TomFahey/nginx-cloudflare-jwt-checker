@@ -13,7 +13,7 @@
 
 #define PADDING "=========="
 
-extern u_char *base64_urlsafe_to_standard(ngx_pool_t *pool, char* base64url) {
+u_char *base64_urlsafe_to_standard(ngx_pool_t *pool, char* base64url) {
     u_char *b64buffer = ngx_pcalloc(pool, ngx_strlen(base64url)+1);
     ngx_memcpy(b64buffer, base64url, ngx_strlen(base64url));
     u_char a = '-';
@@ -31,7 +31,7 @@ extern u_char *base64_urlsafe_to_standard(ngx_pool_t *pool, char* base64url) {
     return b64buffer;
 }
 
-extern u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int** len) {
+u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int** len) {
    BIO *b64 = NULL;
    BIO *bmem = NULL;
    size_t length = ngx_strlen((char *)base64data);
@@ -64,7 +64,7 @@ extern u_char *base64_decode(ngx_pool_t *pool, u_char* base64data, int** len) {
    return retbuffer;
 }
 
-extern BIGNUM* bignum_base64_decode(ngx_pool_t *pool, u_char* base64bignum, int* len) {
+BIGNUM* bignum_base64_decode(ngx_pool_t *pool, u_char* base64bignum, int* len) {
    BIGNUM* bn = NULL;
    u_char* data = base64_decode(pool, base64bignum, &len);
    if (*len) {
@@ -75,7 +75,7 @@ extern BIGNUM* bignum_base64_decode(ngx_pool_t *pool, u_char* base64bignum, int*
 }
 
 
-extern u_char *jwk_to_pem_u_char(ngx_pool_t *pool, struct pubkey_t pubkey) {
+u_char *jwk_to_pem_u_char(ngx_pool_t *pool, struct pubkey_t pubkey) {
     int *mod_hex_len = ngx_palloc(pool, sizeof(int));
     u_char* n_url_decode = base64_urlsafe_to_standard(pool, pubkey.modulus);
     BIGNUM *n = bignum_base64_decode(pool, n_url_decode, mod_hex_len);
