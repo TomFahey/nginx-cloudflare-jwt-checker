@@ -7,7 +7,7 @@
  * https://github.com/TomFahey/nginx-cloudflare-jwt-checker
  */
 
-#include "ngx_http_jwt_cf_jwk_request.h"
+#include "ngx_http_jwt_cf_jwk_decode.h"
 
 #include <ngx_core.h>
 
