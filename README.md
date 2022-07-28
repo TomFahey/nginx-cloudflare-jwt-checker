@@ -36,6 +36,8 @@ configuration file, under the top-level (main) context:
 load_module modules/ngx_http_jwt_cf_module.so;
 ```
 
+EDIT: Ricky has kindly provided a Dockerfile from which the module can be compiled automatically, with the most recent version of Nginx. Look in the Dockerfile for more details
+
 ## Dependencies
 This module depends on the [JWT C Library](https://github.com/benmcollins/libjwt)
 
